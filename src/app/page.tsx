@@ -41,7 +41,7 @@ export default function Home() {
 
   return (
     <main className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6 text-center">{'</z3r07$>'}</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">{'</v0EJS>'}</h1>
 
       <div className="flex justify-end mb-4">
         <Button
