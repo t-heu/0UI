@@ -33,15 +33,15 @@ export default function Home() {
     document.body.removeChild(element)
   }
 
-  const handleCodeGenerated = (ejs: string, css: string) => {
-    setEjsCode(ejs)
+  const handleCodeGenerated = (contentCode: string, css: string) => {
+    setEjsCode(contentCode)
     setCssCode(css)
     setShowChat(false)
   }
 
   return (
     <main className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6 text-center">{'</v0EJS>'}</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">{'v0EJS'}</h1>
 
       <div className="flex justify-end mb-4">
         <Button
@@ -65,9 +65,9 @@ export default function Home() {
           <div className="space-y-6">
             <Tabs defaultValue="ejs">
               <TabsList className="bg-[#ececec] grid w-full grid-cols-3 mb-2">
-                <TabsTrigger value="ejs">EJS Template</TabsTrigger>
-                <TabsTrigger value="css">CSS</TabsTrigger>
-                <TabsTrigger value="data">Data</TabsTrigger>
+                <TabsTrigger className="dark:text-black hover:bg-[#ccc]"  value="ejs">EJS Template</TabsTrigger>
+                <TabsTrigger className="dark:text-black hover:bg-[#ccc]" value="css">CSS</TabsTrigger>
+                <TabsTrigger className="dark:text-black hover:bg-[#ccc]" value="data">Data</TabsTrigger>
               </TabsList>
 
               <TabsContent value="ejs" className="space-y-2">

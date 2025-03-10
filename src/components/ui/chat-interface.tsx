@@ -12,14 +12,18 @@ import { Code, User, Send, Loader2 } from "lucide-react"
 import generateCode from "../../app/utils/generateCode";
 
 type Message = {
-  id: string
-  role: "user" | "assistant"
-  content: string
+  id: string;
+  role: "user" | "assistant";
+  content: string;
   code?: {
-    ejs?: string
-    css?: string
-  }
-}
+    ejs?: string;
+    pug?: string;
+    nunjucks?: string;
+    handlebars?: string;
+    html?: string;
+    css?: string;
+  };
+};
 
 type ChatInterfaceProps = {
   onCodeGenerated: (ejs: string, css: string) => void
@@ -63,17 +67,14 @@ export default function ChatInterface({ onCodeGenerated }: ChatInterfaceProps) {
     // Chama a IA para gerar o código EJS e CSS
     const generatedCode = await generateCode(input);
   
-    // Divide o código gerado em EJS e CSS (supondo que o resultado de `generateCode` seja um objeto)
-    const { ejs, css } = JSON.parse(generatedCode);
-    // Gera a resposta do assistente com o código EJS e CSS
+    // Extração dinâmica para todas as engines
+    const extractedCode = JSON.parse(generatedCode);
+
     const assistantMessage: Message = {
       id: Date.now().toString(),
       role: "assistant",
-      content: "I've created an EJS template and CSS for you based on your request. Here's what I've generated:",
-      code: {
-        ejs,
-        css,
-      },
+      content: "I've created a template for you based on your request.",
+      code: extractedCode, // Agora inclui todas as engines
     };
   
     // Atualiza as mensagens com a resposta da IA
@@ -81,9 +82,25 @@ export default function ChatInterface({ onCodeGenerated }: ChatInterfaceProps) {
     setIsLoading(false);
   };
 
-  const handleUseCode = (ejs: string, css: string) => {
-    onCodeGenerated(ejs, css)
-  }
+  const handleUseCode = (code: Message["code"]) => {
+    if (code) {
+      if (code.ejs) {
+        onCodeGenerated(code.ejs, code.css || "");
+      } else if (code.html) {
+        onCodeGenerated(code.html, code.css || "");
+      } else if (code.nunjucks) {
+        onCodeGenerated(code.nunjucks, code.css || "");
+      } else if (code.handlebars) {
+        onCodeGenerated(code.handlebars, code.css || "");
+      } else if (code.pug) {
+        onCodeGenerated(code.pug, code.css || "");
+      } else {
+        onCodeGenerated("<h1>404</h1>", "h1 {font-size: 3em;text-align: center;}");
+      }
+    } else {
+      onCodeGenerated("<h1>404</h1>", "h1 {font-size: 3em;text-align: center;}");
+    }
+  };  
 
   return (
     <div className="flex flex-col h-[600px]">
@@ -99,35 +116,24 @@ export default function ChatInterface({ onCodeGenerated }: ChatInterfaceProps) {
                   <p>{message.content}</p>
                 </Card>
 
+
                 {message.code && (
                   <div className="mt-2">
-                    {message.code.ejs && (
-                      <div className="mb-2">
-                        <div className="bg-muted text-xs p-1 rounded-t-md">EJS Template</div>
-                        <pre className="bg-muted p-2 rounded-b-md overflow-x-auto text-xs">
-                          <code>{message.code.ejs}</code>
-                        </pre>
-                      </div>
-                    )}
-
-                    {message.code.css && (
-                      <div className="mb-2">
-                        <div className="bg-muted text-xs p-1 rounded-t-md">CSS</div>
-                        <pre className="bg-muted p-2 rounded-b-md overflow-x-auto text-xs">
-                          <code>{message.code.css}</code>
-                        </pre>
-                      </div>
-                    )}
+                    {Object.entries(message.code).map(([engine, code]) => (
+                      code && (
+                        <div key={engine} className="mb-2">
+                          <div className="bg-muted text-xs p-1 rounded-t-md capitalize">{engine} Template</div>
+                          <pre className="bg-muted p-2 rounded-b-md overflow-x-auto text-xs">
+                            <code>{code}</code>
+                          </pre>
+                        </div>
+                      )
+                    ))}
 
                     <Button
                       size="sm"
                       className="bg-black text-white hover:bg-gray-800 mt-2"
-                      onClick={() =>
-                        message.code &&
-                        message.code.ejs &&
-                        message.code.css &&
-                        handleUseCode(message.code.ejs, message.code.css)
-                      }
+                      onClick={() => message.code && handleUseCode(message.code)}
                     >
                       Use This Code
                     </Button>

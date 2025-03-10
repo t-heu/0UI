@@ -12,7 +12,7 @@ export default async function studioAI(script: string) {
     
     return sugestao;
   } catch (error) {
-    console.error("Erro ao obter sugestão:", error);
+    console.error("Ops! Algo deu errado: ", error);
     return "Ops! Algo deu errado.";
   }
 }
