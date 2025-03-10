@@ -6,7 +6,7 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "</z3r07$> - Crie Templates EJS e CSS",
+  title: "</v0EJS> - Crie Templates EJS e CSS",
   description: "Gerador de templates EJS e CSS com IA",
 }
 
