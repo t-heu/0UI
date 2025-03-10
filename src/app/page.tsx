@@ -73,7 +73,7 @@ export default function Home() {
               <TabsContent value="ejs" className="space-y-2">
                 <Card>
                   <CardContent className="p-0">
-                    <CodeEditor value={ejsCode} onChange={setEjsCode} language="html" height="300px" />
+                    <CodeEditor value={ejsCode} onChange={setEjsCode} height="300px" />
                   </CardContent>
                 </Card>
                 <div className="flex justify-end gap-2">
@@ -91,7 +91,7 @@ export default function Home() {
               <TabsContent value="css" className="space-y-2">
                 <Card>
                   <CardContent className="p-0">
-                    <CodeEditor value={cssCode} onChange={setCssCode} language="css" height="300px" />
+                    <CodeEditor value={cssCode} onChange={setCssCode} height="300px" />
                   </CardContent>
                 </Card>
                 <div className="flex justify-end gap-2">
@@ -109,7 +109,7 @@ export default function Home() {
               <TabsContent value="data" className="space-y-2">
                 <Card>
                   <CardContent className="p-0">
-                    <CodeEditor value={data} onChange={setData} language="json" height="300px" />
+                    <CodeEditor value={data} onChange={setData} height="300px" />
                   </CardContent>
                 </Card>
               </TabsContent>
