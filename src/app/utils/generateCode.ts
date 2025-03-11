@@ -14,6 +14,7 @@ export default async function generateCode(msg: string) {
   - Gere apenas o código, sem explicações.
   - Separe o código do template e do CSS.
   - Utilize a sintaxe correta para cada template engine.
+  - Gere apenas uma template disponível dentro das opções (ejs, html, nunjucks, handlebars, pug).
   
   User: "${msg}"
 `;
