@@ -41,7 +41,7 @@ export default function Home() {
 
   return (
     <main className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6 text-center">{'zer0UI'}</h1>
+      <h1 className="text-3xl font-bold mt-6 mb-6 text-center">{'<0UI/>'}</h1>
 
       <div className="flex justify-end mb-4">
         <Button
@@ -83,7 +83,7 @@ export default function Home() {
                   </Button>
                   <Button className="bg-black text-white hover:bg-gray-800" size="sm" onClick={() => downloadFile(ejsCode, "template.ejs")}>
                     <Download className="h-4 w-4 mr-2" />
-                    Download EJS
+                    Download content
                   </Button>
                 </div>
               </TabsContent>
@@ -118,8 +118,8 @@ export default function Home() {
 
           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Preview</h2>
-            <Card className="min-h-[400px]">
-              <CardContent className="p-4">
+            <Card className="py-2 min-h-[400px]">
+              <CardContent className="p-2 h-full">
                 <Preview ejsCode={ejsCode} cssCode={cssCode} data={data} />
               </CardContent>
             </Card>
@@ -135,6 +135,9 @@ export default function Home() {
           </div>
         </div>
       )}
+      <footer className="text-center p-4 mt-8">
+        <p className="text-sm">&copy; {new Date().getFullYear()} All rights reserved. Developed by t-heu</p>
+      </footer>
     </main>
   )
 }

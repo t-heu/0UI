@@ -123,7 +123,7 @@ export default function ChatInterface({ onCodeGenerated }: ChatInterfaceProps) {
                       code && (
                         <div key={engine} className="mb-2">
                           <div className="bg-muted text-xs p-1 rounded-t-md capitalize">{engine} Template</div>
-                          <pre className="bg-muted p-2 rounded-b-md overflow-x-auto text-xs">
+                          <pre className="w-[300px] md:w-[600px] bg-muted p-2 rounded-b-md overflow-x-auto text-xs">
                             <code>{code}</code>
                           </pre>
                         </div>
