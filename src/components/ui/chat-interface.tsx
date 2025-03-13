@@ -34,7 +34,7 @@ export default function ChatInterface({ onCodeGenerated }: ChatInterfaceProps) {
     {
       id: "welcome",
       role: "assistant",
-      content: "Hello! I'm your EJS & CSS generator assistant. What kind of template would you like me to create for you today?",
+      content: "Hello! I'm your Template engine & CSS generator assistant. What kind of template would you like me to create for you today?",
     },
   ])
   const [input, setInput] = useState("")
