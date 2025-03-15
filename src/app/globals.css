@@ -14,8 +14,19 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #111;
+    --background: #0f0f10;
     --foreground: #ededed;
+    --bg-input: #141415;
+    --bg-header: #0a0a0a;
+  }
+
+  button {
+    background-color: #18181b;
+    color: #fafafa;
+  }
+
+  button:hover {
+    background-color: #333;
   }
 }
 
@@ -27,4 +38,14 @@ body {
 
 button {
   cursor: pointer;
+  background-color: #18181b;
+  color: #fafafa;
+}
+
+button:hover {
+  background-color: #333;
+}
+
+button[aria-selected=true] {
+  background-color: #333;
 }

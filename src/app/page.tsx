@@ -4,10 +4,12 @@ import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import CodeEditor from "@/components/ui/code-editor"
-import Preview from "@/components/ui/preview"
-import ChatInterface from "@/components/ui/chat-interface";
+import CodeEditor from "@/components/code-editor"
+import Preview from "@/components/preview"
 import { Download, Copy, MessageSquare } from "lucide-react"
+
+import ChatInterface from "@/components/chat-interface";
+import Header from "@/components/header"
 
 export default function Home() {
   const [ejsCode, setEjsCode] = useState("<h1><%= title %></h1>\n<p><%= content %></p>")
@@ -40,104 +42,105 @@ export default function Home() {
   }
 
   return (
-    <main className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mt-6 mb-6 text-center">{'<0UI/>'}</h1>
+    <>
+      <Header isLogged={false} />
 
-      <div className="flex justify-end mb-4">
-        <Button
-          variant={showChat ? "default" : "outline"}
-          onClick={() => setShowChat(!showChat)}
-          className="bg-black text-white hover:bg-gray-800 flex items-center gap-2"
-        >
-          <MessageSquare className="h-4 w-4" />
-          AI Chat
-        </Button>
-      </div>
+      <main className="container mx-auto p-4">
+        <div className="flex justify-end mb-4">
+          <Button
+            variant={showChat ? "default" : "outline"}
+            onClick={() => setShowChat(!showChat)}
+            className="bg-black text-white hover:bg-gray-800 flex items-center gap-2"
+          >
+            <MessageSquare className="h-4 w-4" />
+            Ask 0UI to build...
+          </Button>
+        </div>
 
-      {showChat ? (
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <ChatInterface onCodeGenerated={handleCodeGenerated} />
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-6">
-            <Tabs defaultValue="ejs">
-              <TabsList className="bg-[#ececec] grid w-full grid-cols-3 mb-2">
-                <TabsTrigger className="dark:text-black hover:bg-[#ccc]"  value="ejs">Template</TabsTrigger>
-                <TabsTrigger className="dark:text-black hover:bg-[#ccc]" value="css">CSS</TabsTrigger>
-                <TabsTrigger className="dark:text-black hover:bg-[#ccc]" value="data">Data</TabsTrigger>
-              </TabsList>
+        {showChat ? (
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <ChatInterface onCodeGenerated={handleCodeGenerated} />
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-6">
+              <Tabs defaultValue="ejs">
+                <TabsList className="bg-[#18181b] grid w-full grid-cols-3 mb-2 justify-center">
+                  <TabsTrigger value="ejs">Template</TabsTrigger>
+                  <TabsTrigger value="css">CSS</TabsTrigger>
+                  <TabsTrigger value="data">Data</TabsTrigger>
+                </TabsList>
 
-              <TabsContent value="ejs" className="space-y-2">
-                <Card>
-                  <CardContent className="p-0">
-                    <CodeEditor value={ejsCode} onChange={setEjsCode} height="300px" />
-                  </CardContent>
-                </Card>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(ejsCode)}>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy
-                  </Button>
-                  <Button className="bg-black text-white hover:bg-gray-800" size="sm" onClick={() => downloadFile(ejsCode, "template.ejs")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download content
-                  </Button>
-                </div>
-              </TabsContent>
+                <TabsContent value="ejs" className="space-y-2">
+                  <Card>
+                    <CardContent className="p-0">
+                      <CodeEditor value={ejsCode} onChange={setEjsCode} height="300px" />
+                    </CardContent>
+                  </Card>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(ejsCode)}>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy
+                    </Button>
+                    <Button size="sm" onClick={() => downloadFile(ejsCode, "template.ejs")}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download content
+                    </Button>
+                  </div>
+                </TabsContent>
 
-              <TabsContent value="css" className="space-y-2">
-                <Card>
-                  <CardContent className="p-0">
-                    <CodeEditor value={cssCode} onChange={setCssCode} height="300px" />
-                  </CardContent>
-                </Card>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" size="sm" onClick={() => copyToClipboard(cssCode)}>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy
-                  </Button>
-                  <Button className="bg-black text-white hover:bg-gray-800" size="sm" onClick={() => downloadFile(cssCode, "styles.css")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download CSS
-                  </Button>
-                </div>
-              </TabsContent>
+                <TabsContent value="css" className="space-y-2">
+                  <Card>
+                    <CardContent className="p-0">
+                      <CodeEditor value={cssCode} onChange={setCssCode} height="300px" />
+                    </CardContent>
+                  </Card>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(cssCode)}>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy
+                    </Button>
+                    <Button size="sm" onClick={() => downloadFile(cssCode, "styles.css")}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download CSS
+                    </Button>
+                  </div>
+                </TabsContent>
 
-              <TabsContent value="data" className="space-y-2">
-                <Card>
-                  <CardContent className="p-0">
-                    <CodeEditor value={data} onChange={setData} height="300px" />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
+                <TabsContent value="data" className="space-y-2">
+                  <Card>
+                    <CardContent className="p-0">
+                      <CodeEditor value={data} onChange={setData} height="300px" />
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
 
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Preview</h2>
-            <Card className="py-2 min-h-[400px]">
-              <CardContent className="p-2 h-full">
-                <Preview ejsCode={ejsCode} cssCode={cssCode} data={data} />
-              </CardContent>
-            </Card>
-            <div className="flex justify-end gap-2">
-              <Button
-                className="bg-black text-white hover:bg-gray-800"
-                onClick={() => downloadFile(`${ejsCode}\n\n<style>\n${cssCode}\n</style>`, "template-with-styles.ejs")}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download Complete Template
-              </Button>
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Preview</h2>
+              <Card className="py-2 min-h-[400px]">
+                <CardContent className="p-2 h-full">
+                  <Preview templateCode={ejsCode} cssCode={cssCode} data={data} />
+                </CardContent>
+              </Card>
+              <div className="flex justify-end gap-2">
+                <Button
+                  onClick={() => downloadFile(`${ejsCode}\n\n<style>\n${cssCode}\n</style>`, "template-with-styles.ejs")}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download Complete Template
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-      <footer className="text-center p-4 mt-8">
-        <p className="text-sm">&copy; {new Date().getFullYear()} All rights reserved. Developed by t-heu</p>
-      </footer>
-    </main>
+        )}
+        <footer className="text-center p-4 mt-8">
+          <p className="text-sm">&copy; {new Date().getFullYear()} All rights reserved. Developed by t-heu</p>
+        </footer>
+      </main>
+    </>
   )
 }

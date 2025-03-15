@@ -9,7 +9,7 @@ import { Avatar } from "@/components/ui/avatar"
 import { Card } from "@/components/ui/card"
 import { Code, User, Send, Loader2 } from "lucide-react"
 
-import generateCode from "../../app/utils/generateCode";
+import generateCode from "../app/utils/generateCode";
 
 type Message = {
   id: string;
