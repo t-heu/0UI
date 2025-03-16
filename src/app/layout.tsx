@@ -6,7 +6,7 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "0UI - Create your UI with your favorite template",
+  title: "0UI - Create and Edit Live",
   description: "AI-powered EJS, JADE, PUG... and CSS template generator",
 }
 

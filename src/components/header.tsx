@@ -1,8 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
+import Image from 'next/image'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,9 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
 import { LogOut, User, Settings, Zap } from "lucide-react"
-import Link from "next/link"
 
 interface PreviewProps {
   isLogged: boolean
@@ -24,7 +25,7 @@ export default function Header({isLogged}: PreviewProps) {
 
   useEffect(() => {
     setPoints(60)
-  }, [])
+  }, []);
 
   const handleLogout = () => {
     console.log("Logging out...")
@@ -32,24 +33,27 @@ export default function Header({isLogged}: PreviewProps) {
   }
 
   return (
-    <header className="w-full border-b light:bg-[#fafafa] flex justify-center">
-      <div className="container flex h-16 items-center justify-between px-4">
-        <div className="flex items-center gap-2">
-          <Link href="/" className="font-bold text-xl">
-           { '<0UI/>'}
+    <header className="border-b">
+      {isLogged ? (
+        <div className="container flex h-16 items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo.png"
+              width={50}
+              height={50}
+              alt="Picture of the author"
+            />
+            <span className="font-bold">0UI</span>
           </Link>
-        </div>
 
-        {isLogged ? (
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-yellow-500" />
-              <Badge variant="secondary" className="font-medium">
-                {points} credits
-              </Badge>
-            </div>
+            <Zap className="h-4 w-4 text-yellow-500" />
+            <Badge variant="secondary" className="font-medium">
+              {points} credits
+            </Badge>
+          </div>
 
-            <DropdownMenu>
+          <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-10 w-10">
@@ -83,16 +87,28 @@ export default function Header({isLogged}: PreviewProps) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+        </div>
+      ):(
+        <div className="container flex h-16 items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/logo.png"
+              width={50}
+              height={50}
+              alt="Picture of the author"
+            />
+            <span className="font-bold">0UI</span>
+          </Link>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" asChild>
+              <Link href="/signin">Sign In</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/signup">Sign Up</Link>
+            </Button>
           </div>
-        ):(
-          <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-yellow-500" />
-            <Badge variant="secondary" className="font-medium">
-              {points} credits
-            </Badge>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </header>
   )
 }
