@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react"
 import {
-  FileCode,
   Download,
   Copy,
   Code,
   Database,
   Palette,
-  Loader2
+  Loader2,
+  Send
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -21,12 +21,17 @@ import generateCode from "./utils/generateCode";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 
+import { useUser } from "./context/userContext"
+import { ref, database, update } from "../app/api/firebase";
+
 export default function Home() {
+  const { points, isLogged, setPoints } = useUser()
+
   const [htmlCode, setHtmlCode] = useState(`<h1><%= title %></h1>\n<p><%= content %></p>`)
   const [cssCode, setCssCode] = useState(`h1 {\n  color: #333;\n  font-size: 24px;\n}\n\np {\n  color: #666;\n  line-height: 1.6;\n}`)
   const [dataCode, setDataCode] = useState(`{\n  "title": "Hello World",\n  "content": "This is an EJS template with dynamic content."\n}`)
-  const [codePreview, setCodePreview] = useState(`<h1><%= title %></h1>\n<p><%= content %></p>`)
-  
+  const [codePreview, setCodePreview] = useState('')
+
   const [error, setError] = useState<string | null>(null)
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false);
@@ -54,30 +59,25 @@ export default function Home() {
     const dataCodeHtml = code.replace(regex, (_, key) => (key in data ? data[key] : ""))
     setCodePreview(dataCodeHtml)
   }, [])
-  const renderEJS = useCallback((code: string, data: object) => replaceVariables(code, data, /<%=\s*(\w+)\s*%>/g), [replaceVariables])
-  const renderHandlebars = useCallback((code: string, data: object)=> replaceVariables(code, data, /{{\s*(\w+)\s*}}/g), [replaceVariables])
-  const renderNunjucks = useCallback((code: string, data: object) => replaceVariables(code, data, /{{\s*(\w+)\s*}}/g), [replaceVariables])
+
+  const renderTemplate = useCallback((code: string, data: object, engine: string) => {
+    const regexMap: any = {
+      ejs: /<%=\s*(\w+)\s*%>/g,
+      handlebars: /{{\s*(\w+)\s*}}/g,
+      nunjucks: /{{\s*(\w+)\s*}}/g
+    };
+  
+    const regex = regexMap[engine] || regexMap.ejs;
+    replaceVariables(code, data, regex);
+  }, [replaceVariables]);
 
   const codeGenerated = useCallback((contentCode: string, css: string, dataObj: any = dataCode) => {
-    const engine = detectTemplateEngine(contentCode)
-
-    switch (engine) {
-      case "ejs":
-        renderEJS(htmlCode, dataObj)
-        break
-      case "handlebars":
-        renderHandlebars(htmlCode, dataObj)
-        break
-      case "nunjucks":
-        renderNunjucks(htmlCode, dataObj)
-        break
-      default:
-        throw new Error("Engine não suportada")
-    }
-
-    setHtmlCode(contentCode)
-    setCssCode(css)
-  }, [dataCode, htmlCode, renderEJS, renderHandlebars, renderNunjucks])
+    const engine = detectTemplateEngine(contentCode);
+    
+    renderTemplate(contentCode, dataObj, engine);
+    setHtmlCode(contentCode);
+    setCssCode(css);
+  }, [dataCode, renderTemplate]);
 
   useEffect(() => {
     try {
@@ -91,42 +91,49 @@ export default function Home() {
 
   function detectTemplateEngine(code: string): string {
     if (/<%=\s*\w+\s*%>/.test(code) || /<%\s*\w+\s*%>/.test(code)) return "ejs"
-    if (/{{\s*\w+\s*}}/.test(code)) return "handlebars" // Handlebars e Nunjucks compartilham a mesma sintaxe
-    if (/^\s*\w+/.test(code) && !/<|{{|%/.test(code)) return "pug" // Sem tags HTML, parece Pug
-    return "nunjucks" // Se usa `{{ }}` e não for identificado como Handlebars, assumimos Nunjucks
+    if (/{{\s*\w+\s*}}/.test(code)) return "handlebars"
+    if (/^\s*\w+/.test(code) && !/<|{{|%/.test(code)) return "pug"
+    return "html";
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
+
+    if (!isLogged) {
+      alert("Você precisa estar logado para enviar!");
+      return;
+    }
+
+    if (points < 30) {
+      alert("Saldo insuficiente. Você precisa de pelo menos 30 pontos.")
+      return;
+    }
   
     setInput("");
-    setIsLoading(true); // Começar o carregamento
+    setIsLoading(true);
   
     try {
-      // Chama a IA para gerar o código EJS e CSS
+      setPoints((prev) => prev - 30);
+
+      const userRef = ref(database, `0UI/users/${isLogged}`);
+      await update(userRef, { credits: points - 30, updateAt: new Date().toISOString() });
+
       const generatedCode = await generateCode(input);
-  
-      // Extração dinâmica para todas as engines
       const extractedCode = JSON.parse(generatedCode);
+      
+      const codeMapping: any = {
+        ejs: extractedCode.ejs,
+        html: extractedCode.html,
+        nunjucks: extractedCode.nunjucks,
+        handlebars: extractedCode.handlebars,
+        pug: extractedCode.pug,
+      };
   
-      if (extractedCode) {
-        if (extractedCode.ejs) {
-          codeGenerated(extractedCode.ejs, extractedCode.css || "");
-        } else if (extractedCode.html) {
-          codeGenerated(extractedCode.html, extractedCode.css || "");
-        } else if (extractedCode.nunjucks) {
-          codeGenerated(extractedCode.nunjucks, extractedCode.css || "");
-        } else if (extractedCode.handlebars) {
-          codeGenerated(extractedCode.handlebars, extractedCode.css || "");
-        } else if (extractedCode.pug) {
-          codeGenerated(extractedCode.pug, extractedCode.css || "");
-        } else {
-          codeGenerated("<h1>404</h1>", "h1 {font-size: 3em;text-align: center;}");
-        }
-      } else {
-        codeGenerated("<h1>404</h1>", "h1 {font-size: 3em;text-align: center;}");
-      }
+      const code = codeMapping.ejs || codeMapping.html || codeMapping.nunjucks || codeMapping.handlebars || codeMapping.pug || "<h1>404</h1>";
+      const css = extractedCode.css || "";
+      
+      codeGenerated(code, css);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao processar template");
     } finally {
@@ -146,7 +153,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header isLogged={false} />
+      <Header />
 
       <main className="flex-1">
         <section className="container py-24 text-center pb-0">
@@ -157,8 +164,7 @@ export default function Home() {
               <div className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-2">
                 {!isLoading ? (
                   <Button type="submit" variant="ghost" size="icon" className="h-8 w-8">
-                    <FileCode className="h-4 w-4" />
-                    <span className="sr-only">Attach file</span>
+                    <Send className="h-5 w-5" />
                   </Button>
                 ) : (
                   <div className="flex items-center gap-2">

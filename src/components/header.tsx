@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
@@ -16,20 +15,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { LogOut, User, Settings, Zap } from "lucide-react"
 
-interface PreviewProps {
-  isLogged: boolean
-}
+import { useUser } from "../app/context/userContext"
 
-export default function Header({isLogged}: PreviewProps) {
-  const [points, setPoints] = useState(0)
-
-  useEffect(() => {
-    setPoints(60)
-  }, []);
+export default function Header() {
+  const { isLogged, points } = useUser()
 
   const handleLogout = () => {
-    console.log("Logging out...")
-    // Add your logout logic here
+    localStorage.removeItem("authToken");
+    window.location.href = "/";
   }
 
   return (
