@@ -25,7 +25,7 @@ import { useUser } from "./context/userContext"
 import { ref, database, update } from "../app/api/firebase";
 
 export default function Home() {
-  const { points, isLogged, setPoints } = useUser()
+  const { points, user, setPoints } = useUser()
 
   const [htmlCode, setHtmlCode] = useState(`<h1><%= title %></h1>\n<p><%= content %></p>`)
   const [cssCode, setCssCode] = useState(`h1 {\n  color: #333;\n  font-size: 24px;\n}\n\np {\n  color: #666;\n  line-height: 1.6;\n}`)
@@ -90,17 +90,18 @@ export default function Home() {
   }, [htmlCode, dataCode, cssCode, codeGenerated])
 
   function detectTemplateEngine(code: string): string {
-    if (/<%=\s*\w+\s*%>/.test(code) || /<%\s*\w+\s*%>/.test(code)) return "ejs"
-    if (/{{\s*\w+\s*}}/.test(code)) return "handlebars"
-    if (/^\s*\w+/.test(code) && !/<|{{|%/.test(code)) return "pug"
+    if (/^<%=?\s*\w+/.test(code)) return "ejs";
+    if (/{{\s*[\w.]+\s*}}/.test(code)) return "handlebars";
+    if (/{{\s*\w+\s*}}/.test(code)) return "nunjucks";
+    if (!/[<>]/.test(code)) return "pug"; // Verifica se não há tags HTML
     return "html";
-  }
+  }  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    if (!isLogged) {
+    if (!user) {
       alert("Você precisa estar logado para enviar!");
       return;
     }
@@ -116,7 +117,7 @@ export default function Home() {
     try {
       setPoints((prev) => prev - 30);
 
-      const userRef = ref(database, `0UI/users/${isLogged}`);
+      const userRef = ref(database, `0UI/users/${user.uid}`);
       await update(userRef, { credits: points - 30, updateAt: new Date().toISOString() });
 
       const generatedCode = await generateCode(input);
@@ -305,7 +306,9 @@ export default function Home() {
                     srcDoc={combinedCode}
                     title="Preview"
                     className="h-[500px] w-full rounded border"
-                    sandbox="allow-scripts"
+                    sandbox="allow-scripts allow-downloads"
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
                   />
                 )}
               </div>

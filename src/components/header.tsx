@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import Image from 'next/image'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -14,20 +15,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { LogOut, User, Settings, Zap } from "lucide-react"
+import { signOut } from "firebase/auth"
 
+import { auth } from "../app/api/firebase";
 import { useUser } from "../app/context/userContext"
 
 export default function Header() {
-  const { isLogged, points } = useUser()
+  const { user, points, setUser } = useUser()
+  const router = useRouter()
 
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    window.location.href = "/";
+  const handleLogout = async () => {
+    try {
+      await signOut(auth)
+      setUser(null)
+      router.push("/")
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error)
+    }
   }
 
   return (
     <header className="border-b">
-      {isLogged ? (
+      {user ? (
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Image

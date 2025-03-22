@@ -2,7 +2,7 @@
 [![linkedin](https://img.shields.io/badge/Linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/matheusgbatista/)
 [![web](https://img.shields.io/badge/web-000000?style=for-the-badge&logo=web&logoColor=white)](https://t-heu.github.io)
 
-![logo](docs/logo.png "logo")
+![logo](docs/logo.jpeg "logo")
 
 ## Getting Started
 

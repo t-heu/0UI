@@ -14,6 +14,7 @@ import {
   orderByChild, 
   equalTo 
 } from "firebase/database";
+import { getAuth } from "firebase/auth"
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_API_KEY,
@@ -24,6 +25,7 @@ const firebaseConfig = {
 
 const app = firebase.initializeApp(firebaseConfig);
 const database = getDatabase(app);
+const auth = getAuth(app)
 
 export { 
   firebase, 
@@ -39,5 +41,6 @@ export {
   push, 
   query, 
   orderByChild, 
-  equalTo 
+  equalTo,
+  auth
 };

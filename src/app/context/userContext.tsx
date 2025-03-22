@@ -1,43 +1,45 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { get, ref, database } from "../../app/api/firebase";
+import { get, ref, database, auth } from "../../app/api/firebase";
+import { onAuthStateChanged, User } from "firebase/auth"
 
 interface UserContextType {
-  isLogged: string | null;
+  user: User | null;
   points: number;
   setPoints: React.Dispatch<React.SetStateAction<number>>;
-  setIsLogged: React.Dispatch<React.SetStateAction<string | null>>;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [isLogged, setIsLogged] = useState<string | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [points, setPoints] = useState<number>(0)
 
   useEffect(() => {
-    const user = localStorage.getItem("authToken");
-    if (user) setIsLogged(user);
-  }, []);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser)
+      if (currentUser) {
+        try {
+          const userRef = ref(database, `0UI/users/${currentUser.uid}`)
+          const snapshot = await get(userRef)
 
-  useEffect(() => {
-    async function fetchData() {
-      if (!isLogged) return
-
-      const userRef = ref(database, `0UI/users/${isLogged}`);
-      const snapshot = await get(userRef);
-
-      if (snapshot.exists()) {
-        const data: any = snapshot.val()
-        setPoints(data.credits)
+          if (snapshot.exists()) {
+            setPoints(snapshot.val().credits || 0)
+          }
+        } catch (err) {
+          console.error("Erro ao buscar créditos do usuário:", err)
+        }
+      } else {
+        setPoints(0)
       }
-    }
+    })
 
-    fetchData()
-  }, [isLogged])
+    return () => unsubscribe()
+  }, [])
 
-  return <UserContext.Provider value={{ isLogged, points, setPoints, setIsLogged }}>{children}</UserContext.Provider>
+  return <UserContext.Provider value={{ user, points, setPoints, setUser }}>{children}</UserContext.Provider>
 }
 
 export function useUser() {

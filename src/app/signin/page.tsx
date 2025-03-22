@@ -2,54 +2,60 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import bcrypt from "bcryptjs"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { signInWithEmailAndPassword } from "firebase/auth";
 
+import { auth } from "../api/firebase";
 import { useUser } from "../context/userContext"
-import { get, ref, database, query, orderByChild, equalTo } from "../api/firebase";
 
 export default function SignInPage() {
-  const { isLogged } = useUser()
+  const { user } = useUser()
+  const router = useRouter()
 
   const [password, setPassword] = useState("")
   const [email, setEmail] = useState("")
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (isLogged) window.location.href = "/"
-  }, [isLogged]);
+    console.log(user)
+    if (user) router.push("/")
+  }, [user, router]);
+
+  function getFirebaseErrorMessage(errorCode: string): string {
+    const errorMessages: Record<string, string> = {
+      "auth/user-not-found": "Usuário não encontrado.",
+      "auth/wrong-password": "Senha incorreta.",
+      "auth/invalid-email": "O email informado não é válido.",
+      "auth/user-disabled": "Usuário desativado.",
+      "auth/too-many-requests": "Muitas tentativas seguidas. Aguarde e tente novamente.",
+      "auth/network-request-failed": "Falha na conexão com a internet."
+    };
+    
+    return errorMessages[errorCode] || "Erro ao fazer login. Tente novamente.";
+  }
 
   async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+
+    if (!email.trim() || !password.trim()) {
+      return setError("Todos os campos são obrigatórios.");
+    }
+
     try {
-      e.preventDefault();
-      if (!email.trim() || !password.trim()) return;
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-      if (!password || !email) {
-        return setError("Todos os campos são obrigatórios.");
-      }
-      
-      const usersRef = ref(database, `0UI/users`);
-      const emailQuery = query(usersRef, orderByChild("email"), equalTo(email));
-      const snapshot = await get(emailQuery);
-      const data: any = snapshot.val();
-      const key = Object.keys(data)[0]
+      localStorage.setItem("authToken", user.uid);
 
-      if (!snapshot.exists()) {
-        return setError("Usuário não encontrado.");
-      }
-
-      if (!data || !(await bcrypt.compare(password, data[key].password))) {
-        return setError("Usuário ou senha incorretos.");
-      }
-
-      localStorage.setItem("authToken", key);
-      window.location.href = "/"
-    } catch (error) {
+      router.push("/");
+    } catch (error: any) {
       console.error("Erro ao cadastrar usuário:", error);
-      return setError("Erro interno do servidor.");
+      return setError(getFirebaseErrorMessage(error.code))
     }
   }
 

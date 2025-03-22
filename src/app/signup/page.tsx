@@ -1,19 +1,21 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
-import bcrypt from "bcryptjs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 
+import { ref, database, set, auth } from "../api/firebase";
 import { useUser } from "../context/userContext"
-import { get, ref, database, set } from "../api/firebase";
 
 export default function SignUpPage() {
-  const { isLogged } = useUser()
+  const { user } = useUser()
+  const router = useRouter()
 
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -22,44 +24,64 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-      if (isLogged) window.location.href = "/"
-    }, [isLogged]);
+      if (user) router.push("/")
+    }, [user, router]);
+
+  function getFirebaseErrorMessage(errorCode: string): string {
+    const errorMessages: Record<string, string> = {
+      "auth/email-already-in-use": "Este email já está cadastrado. Tente outro.",
+      "auth/invalid-email": "O email informado não é válido.",
+      "auth/weak-password": "A senha deve ter pelo menos 6 caracteres.",
+      "auth/network-request-failed": "Falha na conexão com a internet.",
+      "auth/operation-not-allowed": "Cadastro com email e senha não está permitido.",
+      "auth/too-many-requests": "Muitas tentativas seguidas. Tente novamente mais tarde.",
+    }
+    
+    return errorMessages[errorCode] || "Erro ao criar conta. Tente novamente."
+  }
 
   async function handleSubmit(e: React.FormEvent) {
-    try {
-      e.preventDefault();
-      if (!name.trim() || !email.trim() || !confirmPassword.trim() || !password.trim()) return;
+    e.preventDefault();
+    setError(null)
 
-      if (!name || !password || !confirmPassword || !email) {
-        return setError("Todos os campos são obrigatórios.");
-      }
-      
-      if (password !== confirmPassword) {
-        return setError("As senhas não coincidem." );
-      }
-      
-      const userRef = ref(database, `0UI/users/${name}`);
-      const snapshot = await get(userRef);
-      
-      if (snapshot.exists()) {
-        return setError("Usuário já existe.");
-      }
-      
-      const hashedPassword = await bcrypt.hash(password, 10);
+    if (!name.trim() || !email.trim() || !confirmPassword.trim() || !password.trim()) {
+      return setError("Todos os campos são obrigatórios.")
+    }
+
+    if (/\s/.test(name)) {
+      return setError("O nome de usuário não pode conter espaços.")
+    }
+
+    if (password.length < 6) {
+      return setError("A senha deve ter pelo menos 6 caracteres.")
+    }
+    
+    if (password !== confirmPassword) {
+      return setError("As senhas não coincidem." );
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+      const user = userCredential.user
+
+      // Atualizar o nome do usuário no Firebase Auth
+      await updateProfile(user, { displayName: name })
+
+      // Salvar informações do usuário no Database
+      const userRef = ref(database, `0UI/users/${user.uid}`)
       await set(userRef, { 
-        password: hashedPassword, 
         name,
         email,
         credits: 60,
         createdAt: new Date().toISOString(),
-        updateAt: new Date().toISOString()
-      });
+        updateAt: new Date().toISOString(),
+      })
 
       alert("Faça seu login")
-      window.location.href = "/signin"
-    } catch (error) {
+      router.push("/signin")
+    } catch (error: any) {
       console.error("Erro ao cadastrar usuário:", error);
-      return setError("Erro interno do servidor.");
+      return setError(getFirebaseErrorMessage(error.code))
     }
   }
 
