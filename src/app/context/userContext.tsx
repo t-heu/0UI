@@ -1,4 +1,5 @@
 "use client"
+import '../i18n';
 
 import { createContext, useContext, useEffect, useState } from "react"
 import { get, ref, database, auth } from "../../app/api/firebase";

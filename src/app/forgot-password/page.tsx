@@ -8,7 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
+import { useTranslation } from 'react-i18next';
+
 export default function ForgotPassword() {
+  const { t } = useTranslation();
+
   const [email, setEmail] = useState("")
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -16,17 +20,17 @@ export default function ForgotPassword() {
   async function handleForgotPassword(e: React.FormEvent) {
     e.preventDefault()
     if (!email.trim()) {
-      setError("Digite um email válido.")
+      setError(t("errors.email-invalid"))
       return
     }
 
     try {
       await sendPasswordResetEmail(auth, email)
-      setMessage("Um email de redefinição foi enviado!")
+      setMessage("A reset email has been sent!")
       setError(null)
-    } catch (error: any) {
-      console.error("Erro ao enviar email de redefinição:", error)
-      setError("Erro ao enviar email. Verifique se o email está correto.")
+    } catch (error) {
+      console.error("Error ", error)
+      setError(t("errors.email-send"))
     }
   }
 
@@ -34,19 +38,19 @@ export default function ForgotPassword() {
     <form onSubmit={handleForgotPassword} className="container flex h-screen items-center justify-center">
       <Card className="mx-auto max-w-sm">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Forgot Password</CardTitle>
-          <CardDescription>Enter your email to receive the reset link.</CardDescription>
+          <CardTitle className="text-2xl font-bold">{t("interface.forgot_password")}</CardTitle>
+          <CardDescription>{t("interface.forgot_password_description")}</CardDescription>
           {error && <div className="text-red-500 mt-4">Error: {error}</div>}
           {message && <p className="text-green-500 mt-4">{message}</p>}
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("interface.email_label")}</Label>
               <Input value={email} onChange={(e: any) => setEmail(e.target.value)} id="email" type="email" placeholder="m@example.com" required />
             </div>
             <Button type="submit" className="w-full">
-            Send reset link
+              {t("interface.send_reset_link_button")}
             </Button>
           </div>
         </CardContent>

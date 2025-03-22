@@ -23,7 +23,9 @@ export default function RootLayout({
         <meta name="theme-color" content="#111" />
       </head>
       <body className={inter.className}>
-        <UserProvider>{children}</UserProvider>
+        <UserProvider>
+          {children}
+        </UserProvider>
       </body>
     </html>
   )

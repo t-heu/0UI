@@ -10,22 +10,22 @@ import {
   Loader2,
   Send
 } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-
-import generateCode from "./utils/generateCode";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
+import { useTranslation } from 'react-i18next';
 
+import generateCode from "./utils/generateCode";
 import { useUser } from "./context/userContext"
 import { ref, database, update } from "../app/api/firebase";
 
 export default function Home() {
-  const { points, user, setPoints } = useUser()
+  const { points, user, setPoints } = useUser();
+  const { t } = useTranslation();
 
   const [htmlCode, setHtmlCode] = useState(`<h1><%= title %></h1>\n<p><%= content %></p>`)
   const [cssCode, setCssCode] = useState(`h1 {\n  color: #333;\n  font-size: 24px;\n}\n\np {\n  color: #666;\n  line-height: 1.6;\n}`)
@@ -85,15 +85,15 @@ export default function Home() {
       codeGenerated(htmlCode, cssCode, dataObj);
       setError(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao processar template")
+      setError(err instanceof Error ? err.message : t("errors.error_processing_template"))
     }
-  }, [htmlCode, dataCode, cssCode, codeGenerated])
+  }, [htmlCode, dataCode, cssCode, codeGenerated, t])
 
   function detectTemplateEngine(code: string): string {
     if (/^<%=?\s*\w+/.test(code)) return "ejs";
     if (/{{\s*[\w.]+\s*}}/.test(code)) return "handlebars";
     if (/{{\s*\w+\s*}}/.test(code)) return "nunjucks";
-    if (!/[<>]/.test(code)) return "pug"; // Verifica se não há tags HTML
+    if (!/[<>]/.test(code)) return "pug";
     return "html";
   }  
 
@@ -102,12 +102,12 @@ export default function Home() {
     if (!input.trim()) return;
 
     if (!user) {
-      alert("Você precisa estar logado para enviar!");
+      alert(t("errors.login_required"));
       return;
     }
 
     if (points < 30) {
-      alert("Saldo insuficiente. Você precisa de pelo menos 30 pontos.")
+      alert(t("errors.insufficient_points"))
       return;
     }
   
@@ -136,7 +136,7 @@ export default function Home() {
       
       codeGenerated(code, css);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao processar template");
+      setError(err instanceof Error ? err.message : t("errors.error_processing_template"));
     } finally {
       setIsLoading(false);
     }
@@ -158,10 +158,10 @@ export default function Home() {
 
       <main className="flex-1">
         <section className="container py-24 text-center pb-0">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">Create and Edit Live</h1>
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">{t("interface.create_edit_live_title")}</h1>
           <div className="mx-auto mt-12 max-w-3xl">
             <form onSubmit={handleSubmit} className="relative">
-              <Input disabled={isLoading} value={input} onChange={(e: any) => setInput(e.target.value)} className="h-30 pl-4 pr-12 text-base" placeholder="Ask 0UI to build..." />
+              <Input disabled={isLoading} value={input} onChange={(e: any) => setInput(e.target.value)} className="h-30 pl-4 pr-12 text-base" placeholder={t("interface.ask_0ui_placeholder")} />
               <div className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-2">
                 {!isLoading ? (
                   <Button type="submit" variant="ghost" size="icon" className="h-8 w-8">
@@ -170,7 +170,7 @@ export default function Home() {
                 ) : (
                   <div className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <p>Generating code...</p>
+                    <p>{t("interface.generating_code")}</p>
                   </div>
                 )}
               </div>
@@ -187,11 +187,11 @@ export default function Home() {
 
         <section className="container py-12">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Code Editor</h2>
+            <h2 className="text-2xl font-bold">{t("interface.code_editor")}</h2>
             <div className="flex items-center gap-2">
               <Button onClick={() => downloadFile(`${htmlCode}\n\n<style>\n${cssCode}\n</style>`, "template-with-styles.ejs")} variant="outline">
                 <Download className="mr-2 h-4 w-4" />
-                Download
+                {t("interface.download_button")}
               </Button>
             </div>
           </div>
@@ -225,11 +225,11 @@ export default function Home() {
                         <Button
                           variant="ghost"
                           size="icon"
+                          title="copy"
                           className="absolute right-2 top-2"
                           onClick={() => navigator.clipboard.writeText(htmlCode)}
                         >
                           <Copy className="h-4 w-4" />
-                          <span className="sr-only">Copy</span>
                         </Button>
                       </div>
                     </CardContent>
@@ -247,11 +247,11 @@ export default function Home() {
                         <Button
                           variant="ghost"
                           size="icon"
+                          title="copy"
                           className="absolute right-2 top-2"
                           onClick={() => navigator.clipboard.writeText(cssCode)}
                         >
                           <Copy className="h-4 w-4" />
-                          <span className="sr-only">Copy</span>
                         </Button>
                       </div>
                     </CardContent>
@@ -269,11 +269,11 @@ export default function Home() {
                         <Button
                           variant="ghost"
                           size="icon"
+                          title="copy"
                           className="absolute right-2 top-2"
                           onClick={() => navigator.clipboard.writeText(dataCode)}
                         >
                           <Copy className="h-4 w-4" />
-                          <span className="sr-only">Copy</span>
                         </Button>
                       </div>
                     </CardContent>
@@ -284,10 +284,10 @@ export default function Home() {
 
             <div>
               <div className="mb-2 flex items-center justify-between">
-                <h2 className="text-lg font-medium">Preview</h2>
-                <Button variant="outline" size="sm">
+                <h2 className="text-lg font-medium">{t("interface.preview_title")}</h2>
+                <Button title="copy" variant="outline" size="sm">
                   <Copy className="mr-2 h-4 w-4" />
-                  Copy Code
+                  {t("interface.copy_code_button")}
                 </Button>
               </div>
               <div className="rounded-lg border bg-background">
@@ -296,7 +296,7 @@ export default function Home() {
                     <div className="h-3 w-3 rounded-full bg-red-500"></div>
                     <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
                     <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                    <div className="ml-2 text-xs text-muted-foreground">Preview</div>
+                    <div className="ml-2 text-xs text-muted-foreground">{t("interface.preview_title")}</div>
                   </div>
                 </div>
                 {error ? (

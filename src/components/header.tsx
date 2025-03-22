@@ -16,12 +16,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { LogOut, User, Settings, Zap } from "lucide-react"
 import { signOut } from "firebase/auth"
+import { useTranslation } from 'react-i18next';
 
 import { auth } from "../app/api/firebase";
 import { useUser } from "../app/context/userContext"
 
 export default function Header() {
   const { user, points, setUser } = useUser()
+  const { t } = useTranslation();
   const router = useRouter()
 
   const handleLogout = async () => {
@@ -43,7 +45,7 @@ export default function Header() {
               src="/logo.png"
               width={50}
               height={50}
-              alt="Picture of the author"
+              alt="logo"
             />
             <span className="font-bold">0UI</span>
           </Link>
@@ -51,62 +53,62 @@ export default function Header() {
           <div className="flex items-center gap-4">
             <Zap className="h-4 w-4 text-yellow-500" />
             <Badge variant="secondary" className="font-medium">
-              {points} credits
+              {points} {t("interface.credits")}
             </Badge>
           </div>
 
           <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage alt="Profile" />
-                    <AvatarFallback>
-                      <User className="h-6 w-6" />
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage alt="Profile" />
+                  <AvatarFallback>
+                    <User className="h-6 w-6" />
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
 
-              <DropdownMenuContent className="bg-[#fafafa] w-56" align="end" forceMount>
-                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="hover:bg-[#eee]">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Perfil</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="hover:bg-[#eee]">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Configurações</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem className="hover:bg-[#eee]">
-                  <Zap className="mr-2 h-4 w-4" />
-                  <span>Meus Pontos</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="hover:bg-[#eee]" onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sair</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <DropdownMenuContent className="bg-[#fafafa] w-56" align="end" forceMount>
+              <DropdownMenuLabel>{t("account_menu_label")}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="hover:bg-[#eee]">
+                <User className="mr-2 h-4 w-4" />
+                <span>{t("interface.profile")}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="hover:bg-[#eee]">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>{t("interface.settings")}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="hover:bg-[#eee]">
+                <Zap className="mr-2 h-4 w-4" />
+                <span>{t("interface.my_points")}</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="hover:bg-[#eee]" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>{t("interface.logout")}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      ):(
+      ) : (
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Image
               src="/logo.png"
               width={50}
               height={50}
-              alt="Picture of the author"
+              alt="logo"
             />
             <span className="font-bold">0UI</span>
           </Link>
           <div className="flex items-center gap-4">
             <Button variant="ghost" asChild>
-              <Link href="/signin">Sign In</Link>
+              <Link href="/signin">{t("interface.signin")}</Link>
             </Button>
             <Button asChild>
-              <Link href="/signup">Sign Up</Link>
+              <Link href="/signup">{t("interface.signup")}</Link>
             </Button>
           </div>
         </div>
