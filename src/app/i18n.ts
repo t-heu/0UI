@@ -20,14 +20,17 @@ i18n
   .use(LanguageDetector) // Detecta o idioma do navegador
   .use(initReactI18next) // Integra o i18next com o React
   .init({
-    //fallbackLng: 'en-US', // Idioma de fallback caso o idioma detectado não esteja disponível
-    //supportedLngs: ['pt-BR', 'en' ,'en-US'], // Idiomas suportados
+    fallbackLng: "en-US",
     //debug: true, // Habilite a depuração para verificar se os arquivos de tradução estão sendo carregados corretamente
     interpolation: {
       escapeValue: false, // Importante para evitar problemas com escape de HTML (já que o React faz isso)
     },
     resources,
-    lng: "en-US"
+    detection: {
+      order: ["localStorage", "navigator"], // Primeiro verifica localStorage, depois o navegador
+      caches: ["localStorage"], // Salva a escolha do usuário para persistência
+    },
+    //lng: "en-US"
   });
 
   i18n.on('languageChanged', (lng) => {

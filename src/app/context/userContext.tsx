@@ -2,21 +2,34 @@
 import '../i18n';
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { get, ref, database, auth } from "../../app/api/firebase";
+import { useTranslation } from "react-i18next";
 import { onAuthStateChanged, User } from "firebase/auth"
+
+import { get, ref, database, auth } from "../../app/api/firebase";
 
 interface UserContextType {
   user: User | null;
   points: number;
   setPoints: React.Dispatch<React.SetStateAction<number>>;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  loading: boolean;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
+  const { i18n } = useTranslation();
+
   const [user, setUser] = useState<User | null>(null)
   const [points, setPoints] = useState<number>(0)
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const savedLanguage = localStorage.getItem("language");
+    if (savedLanguage) {
+      i18n.changeLanguage(savedLanguage);
+    }
+  }, [i18n]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -31,6 +44,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           }
         } catch (err) {
           console.error("Erro ao buscar créditos do usuário:", err)
+        } finally {
+          setLoading(false);
         }
       } else {
         setPoints(0)
@@ -40,7 +55,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe()
   }, [])
 
-  return <UserContext.Provider value={{ user, points, setPoints, setUser }}>{children}</UserContext.Provider>
+  return <UserContext.Provider value={{ user, points, setPoints, setUser, loading }}>{children}</UserContext.Provider>
 }
 
 export function useUser() {

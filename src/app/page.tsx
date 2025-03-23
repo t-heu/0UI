@@ -8,8 +8,7 @@ import {
   Database,
   Palette,
   Loader2,
-  Send,
-  SquareArrowRight 
+  Send
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,7 +24,7 @@ import { useUser } from "./context/userContext"
 import { ref, database, update } from "../app/api/firebase";
 
 export default function Home() {
-  const { points, user, setPoints } = useUser();
+  const { points, user, setPoints, loading } = useUser();
   const { t } = useTranslation();
 
   const [htmlCode, setHtmlCode] = useState(`<h1><%= title %></h1>\n<p><%= content %></p>`)
@@ -63,28 +62,27 @@ export default function Home() {
     setCodePreview(dataCodeHtml)
   }, [])
 
-  const renderTemplate = useCallback((code: string, data: object) => {
+  const renderTemplate = useCallback((code: string, data: object, engineP: string) => {
     const regexMap: any = {
       ejs: /<%=\s*(\w+)\s*%>/g,
       handlebars: /{{\s*(\w+)\s*}}/g,
       nunjucks: /{{\s*(\w+)\s*}}/g
     };
   
-    const regex = regexMap[engine];
+    const regex = regexMap[engineP];
     replaceVariables(code, data, regex);
-  }, [replaceVariables, engine]);
+  }, [replaceVariables]);
 
-  const codeGenerated = useCallback((contentCode: string, css: string) => {
-    const dataObj = JSON.parse(dataCode)
-
-    renderTemplate(contentCode, dataObj);
+  const codeGenerated = useCallback((contentCode: string, css: string, dataObj: any) => {
+    renderTemplate(contentCode, dataObj, engine);
     setHtmlCode(contentCode);
     setCssCode(css);
-  }, [dataCode, renderTemplate]);
+  }, [renderTemplate, engine]);
 
   useEffect(() => {
-    codeGenerated(htmlCode, cssCode);
-  }, [htmlCode, cssCode, codeGenerated])
+    const dataObj = JSON.parse(dataCode);
+    codeGenerated(htmlCode, cssCode, dataObj);
+  }, [htmlCode, cssCode, dataCode, codeGenerated]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,34 +103,23 @@ export default function Home() {
   
     try {
       setPoints((prev) => prev - 30);
-
       const userRef = ref(database, `0UI/users/${user.uid}`);
       await update(userRef, { credits: points - 30, updateAt: new Date().toISOString() });
 
       const generatedCode = await generateCode(input);
-      const extractedCode = JSON.parse(generatedCode);
-      
-      const codeMapping: any = {
-        ejs: extractedCode.ejs,
-        html: extractedCode.html,
-        nunjucks: extractedCode.nunjucks,
-        handlebars: extractedCode.handlebars,
-        pug: extractedCode.pug,
-      };
-  
-      const entry = Object.entries(codeMapping).find(([_, value]) => typeof value === "string");
-      const code = (entry ? entry[1] : "<h1>404</h1>") as string;
-      const source = entry ? entry[0] : "none";
-      const css = extractedCode.css || "";
+      const { ejs, html, nunjucks, handlebars, pug, css } = JSON.parse(generatedCode);
+
+      const codeMapping = { ejs, html, nunjucks, handlebars, pug };
+      const [source, code] = Object.entries(codeMapping).find(([_, value]) => typeof value === "string") || ["none", "<h1>404</h1>"];
 
       setEngine(source)
-      codeGenerated(code, css);
+      codeGenerated(code, css || "", JSON.parse(dataCode));
     } catch (err) {
       setError(err instanceof Error ? err.message : t("errors.error_processing_template"));
     } finally {
       setIsLoading(false);
     }
-  };  
+  };
 
   const downloadFile = (content: string, filename: string) => {
     const element = document.createElement("a")
@@ -142,6 +129,14 @@ export default function Home() {
     document.body.appendChild(element)
     element.click()
     document.body.removeChild(element)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-4 w-4 animate-spin" />
+      </div>
+    );
   }
 
   return (
@@ -157,7 +152,7 @@ export default function Home() {
               <div className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-2">
                 {!isLoading ? (
                   <Button type="submit" variant="ghost" size="icon" className="h-10 w-10">
-                    <SquareArrowRight size={10} />
+                    <Send size={10} />
                   </Button>
                 ) : (
                   <div className="flex items-center gap-2">
@@ -297,7 +292,7 @@ export default function Home() {
                   <iframe
                     srcDoc={combinedCode}
                     title="Preview"
-                    className="h-[500px] w-full rounded border"
+                    className="h-[500px] w-full"
                     sandbox="allow-scripts allow-downloads"
                     referrerPolicy="no-referrer"
                     loading="lazy"

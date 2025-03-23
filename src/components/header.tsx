@@ -42,7 +42,8 @@ export default function Header() {
   }
 
   function handleChangeLanguage(language: string) {
-    i18n.changeLanguage(language)
+    i18n.changeLanguage(language);
+    localStorage.setItem("language", language);
   }
 
   return (
