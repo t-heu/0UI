@@ -31,7 +31,7 @@ export default async function generateCode(msg: string) {
     ejs: res.includes('```ejs') ? res.split('```ejs')[1].split('```')[0].trim() : null,
     pug: res.includes('```pug') ? res.split('```pug')[1].split('```')[0].trim() : null,
     nunjucks: res.includes('```nunjucks') ? res.split('```nunjucks')[1].split('```')[0].trim() : null,
-    handlebars: res.includes('```hbs') ? res.split('```hbs')[1].split('```')[0].trim() : null,
+    handlebars: res.includes('```handlebars') ? res.split('```handlebars')[1].split('```')[0].trim() : null,
     html: res.includes('```html') ? res.split('```html')[1].split('```')[0].trim() : null,
     css: res.includes('```css') ? res.split('```css')[1].split('```')[0].trim() : null
   });  

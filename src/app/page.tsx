@@ -8,7 +8,8 @@ import {
   Database,
   Palette,
   Loader2,
-  Send
+  Send,
+  SquareArrowRight 
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,12 +32,13 @@ export default function Home() {
   const [cssCode, setCssCode] = useState(`h1 {\n  color: #333;\n  font-size: 24px;\n}\n\np {\n  color: #666;\n  line-height: 1.6;\n}`)
   const [dataCode, setDataCode] = useState(`{\n  "title": "Hello World",\n  "content": "This is an EJS template with dynamic content."\n}`)
   const [codePreview, setCodePreview] = useState('')
+  const [engine, setEngine] = useState('ejs')
 
   const [error, setError] = useState<string | null>(null)
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false);
 
-  const mostSearched = ['Clone a google', 'Landing Page', 'Sign Up Form', 'Page Calculate Factorial'];
+  const mostSearched = ['Clone a google', 'Landing Page', 'Sign Up Form', 'Page Calculate Factorial', 'Crie um título com variável title em handlebars'];
 
   const combinedCode = `
     <!DOCTYPE html>
@@ -57,45 +59,32 @@ export default function Home() {
 
   const replaceVariables = useCallback((code: string, data: any, regex: RegExp) => {
     const dataCodeHtml = code.replace(regex, (_, key) => (key in data ? data[key] : ""))
+
     setCodePreview(dataCodeHtml)
   }, [])
 
-  const renderTemplate = useCallback((code: string, data: object, engine: string) => {
+  const renderTemplate = useCallback((code: string, data: object) => {
     const regexMap: any = {
       ejs: /<%=\s*(\w+)\s*%>/g,
       handlebars: /{{\s*(\w+)\s*}}/g,
       nunjucks: /{{\s*(\w+)\s*}}/g
     };
   
-    const regex = regexMap[engine] || regexMap.ejs;
+    const regex = regexMap[engine];
     replaceVariables(code, data, regex);
-  }, [replaceVariables]);
+  }, [replaceVariables, engine]);
 
-  const codeGenerated = useCallback((contentCode: string, css: string, dataObj: any = dataCode) => {
-    const engine = detectTemplateEngine(contentCode);
-    
-    renderTemplate(contentCode, dataObj, engine);
+  const codeGenerated = useCallback((contentCode: string, css: string) => {
+    const dataObj = JSON.parse(dataCode)
+
+    renderTemplate(contentCode, dataObj);
     setHtmlCode(contentCode);
     setCssCode(css);
   }, [dataCode, renderTemplate]);
 
   useEffect(() => {
-    try {
-      const dataObj = JSON.parse(dataCode)
-      codeGenerated(htmlCode, cssCode, dataObj);
-      setError(null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("errors.error_processing_template"))
-    }
-  }, [htmlCode, dataCode, cssCode, codeGenerated, t])
-
-  function detectTemplateEngine(code: string): string {
-    if (/^<%=?\s*\w+/.test(code)) return "ejs";
-    if (/{{\s*[\w.]+\s*}}/.test(code)) return "handlebars";
-    if (/{{\s*\w+\s*}}/.test(code)) return "nunjucks";
-    if (!/[<>]/.test(code)) return "pug";
-    return "html";
-  }  
+    codeGenerated(htmlCode, cssCode);
+  }, [htmlCode, cssCode, codeGenerated])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,9 +120,12 @@ export default function Home() {
         pug: extractedCode.pug,
       };
   
-      const code = codeMapping.ejs || codeMapping.html || codeMapping.nunjucks || codeMapping.handlebars || codeMapping.pug || "<h1>404</h1>";
+      const entry = Object.entries(codeMapping).find(([_, value]) => typeof value === "string");
+      const code = (entry ? entry[1] : "<h1>404</h1>") as string;
+      const source = entry ? entry[0] : "none";
       const css = extractedCode.css || "";
-      
+
+      setEngine(source)
       codeGenerated(code, css);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("errors.error_processing_template"));
@@ -164,8 +156,8 @@ export default function Home() {
               <Input disabled={isLoading} value={input} onChange={(e: any) => setInput(e.target.value)} className="h-30 pl-4 pr-12 text-base" placeholder={t("interface.ask_0ui_placeholder")} />
               <div className="absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-2">
                 {!isLoading ? (
-                  <Button type="submit" variant="ghost" size="icon" className="h-8 w-8">
-                    <Send className="h-5 w-5" />
+                  <Button type="submit" variant="ghost" size="icon" className="h-10 w-10">
+                    <SquareArrowRight size={10} />
                   </Button>
                 ) : (
                   <div className="flex items-center gap-2">
@@ -175,7 +167,8 @@ export default function Home() {
                 )}
               </div>
             </form>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <p className="mt-4 text-[#333]">{t("interface.most_searched_topics")}</p>
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
               {mostSearched.map((text: string, i: number) => (
                 <Button onClick={() => setInput(text)} key={i} variant="outline" className="h-10 gap-2 rounded-md px-4 py-2">
                   {text}
@@ -186,18 +179,17 @@ export default function Home() {
         </section>
 
         <section className="container py-12">
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-2xl font-bold">{t("interface.code_editor")}</h2>
-            <div className="flex items-center gap-2">
-              <Button onClick={() => downloadFile(`${htmlCode}\n\n<style>\n${cssCode}\n</style>`, "template-with-styles.ejs")} variant="outline">
-                <Download className="mr-2 h-4 w-4" />
-                {t("interface.download_button")}
-              </Button>
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             <div className="space-y-3">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-2xl font-bold">{t("interface.code_editor")}</h2>
+                <div className="flex items-center gap-2">
+                  <Button onClick={() => downloadFile(`${htmlCode}\n\n<style>\n${cssCode}\n</style>`, "template-with-styles.ejs")} variant="outline">
+                    <Download className="mr-2 h-4 w-4" />
+                    {t("interface.download_button")}
+                  </Button>
+                </div>
+              </div>
               <Tabs defaultValue="html" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="html" className="flex items-center gap-2">
@@ -284,7 +276,7 @@ export default function Home() {
 
             <div>
               <div className="mb-2 flex items-center justify-between">
-                <h2 className="text-lg font-medium">{t("interface.preview_title")}</h2>
+                <h2 className="text-2xl font-bold">{t("interface.preview_title")}</h2>
                 <Button title="copy" variant="outline" size="sm">
                   <Copy className="mr-2 h-4 w-4" />
                   {t("interface.copy_code_button")}

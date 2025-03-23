@@ -18,13 +18,18 @@ import { LogOut, User, Settings, Zap } from "lucide-react"
 import { signOut } from "firebase/auth"
 import { useTranslation } from 'react-i18next';
 
+import BrasilFlag from '../app/assets/brasil-flag.svg';
+import EuaFlag from '../app/assets/eua-flag.svg';
 import { auth } from "../app/api/firebase";
 import { useUser } from "../app/context/userContext"
 
 export default function Header() {
   const { user, points, setUser } = useUser()
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
   const router = useRouter()
+
+  const selectedLanguage = i18n.language;
 
   const handleLogout = async () => {
     try {
@@ -36,20 +41,60 @@ export default function Header() {
     }
   }
 
+  function handleChangeLanguage(language: string) {
+    i18n.changeLanguage(language)
+  }
+
   return (
     <header className="border-b">
-      {user ? (
-        <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/logo.png"
-              width={50}
-              height={50}
-              alt="logo"
-            />
-            <span className="font-bold">0UI</span>
-          </Link>
+      <div className="container flex h-16 items-center justify-between">
+        <Link href="/" className="flex items-center gap-2">
+          <span className="font-bold">0UI</span>
+        </Link>
 
+        <div className="flex items-center gap-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src="" alt="Profile" />
+                  <AvatarFallback>
+                    <Image
+                      src={selectedLanguage === 'pt-BR' ? BrasilFlag : EuaFlag}
+                      width={40}
+                      height={40}
+                      alt="logo"
+                    />
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent className="bg-[#fafafa] w-10" align="end" forceMount>
+              <DropdownMenuItem className="hover:bg-[#eee]" onClick={() => handleChangeLanguage('pt-BR')}>
+                <Image
+                  src={BrasilFlag}
+                  width={35}
+                  height={35}
+                  alt="logo"
+                />
+                <span>pt-BR</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="hover:bg-[#eee]" onClick={() => handleChangeLanguage('en-US')}>
+                <Image
+                  src={EuaFlag}
+                  width={35}
+                  height={35}
+                  alt="logo"
+                />
+                <span>en-US</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {user ? (
+          <>
           <div className="flex items-center gap-4">
             <Zap className="h-4 w-4 text-yellow-500" />
             <Badge variant="secondary" className="font-medium">
@@ -70,7 +115,7 @@ export default function Header() {
             </DropdownMenuTrigger>
 
             <DropdownMenuContent className="bg-[#fafafa] w-56" align="end" forceMount>
-              <DropdownMenuLabel>{t("account_menu_label")}</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("interface.account_menu_label")}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="hover:bg-[#eee]">
                 <User className="mr-2 h-4 w-4" />
@@ -91,18 +136,8 @@ export default function Header() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-      ) : (
-        <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Image
-              src="/logo.png"
-              width={50}
-              height={50}
-              alt="logo"
-            />
-            <span className="font-bold">0UI</span>
-          </Link>
+          </>
+        ) : (
           <div className="flex items-center gap-4">
             <Button variant="ghost" asChild>
               <Link href="/signin">{t("interface.signin")}</Link>
@@ -111,8 +146,8 @@ export default function Header() {
               <Link href="/signup">{t("interface.signup")}</Link>
             </Button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </header>
   )
 }
