@@ -43,12 +43,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             setPoints(snapshot.val().credits || 0)
           }
         } catch (err) {
-          console.error("Erro ao buscar créditos do usuário:", err)
+          console.error("Erro ao usuário:", err)
         } finally {
           setLoading(false);
         }
       } else {
         setPoints(0)
+        setLoading(false);
       }
     })
 
